@@ -64,7 +64,7 @@ contract Vault is ERC20 {
     function deposit() external payable openVaultForDepositsAndWithdraw{
 
         uint256 amountToken = msg.value;
-        require(amountToken > 0);
+        require(amountToken > 0, "Amount must be greater than 0");
 
         uint256 supplyLPToken = this.totalSupply();
         uint256 balanceToken = (address(this).balance - amountToken);
@@ -110,7 +110,7 @@ contract Vault is ERC20 {
     }
 
     function getFromStrategy() external onlyOwner {
-        require(startValue > 0);
+        require(startValue > 0, "Start value must be greater than 0");
         
         strategy.callRedeem();  
         strategy.sendToPool();
@@ -118,18 +118,35 @@ contract Vault is ERC20 {
         uint256 pnl = address(this).balance - startValue;
 
         if(pnl > 0){
-            address payable _to = payable(owner); 
-            _to.transfer((pnl * performanceFee / 100));
+            address payable _to = payable(owner);
+            uint256 feeAmount = (pnl * performanceFee / 100);
+            _to.transfer(feeAmount);
         }
             
     }
 
-    function getStrategyBalance() public view returns(uint amount, address strat){
+    function getStrategyBalance() public view returns(uint amount) {
         amount = strategy.getBalance();
+    }
+
+    function getStartValueBalance() public view returns(uint amount) {
+        amount = startValue;
+    }
+
+    function getStrategyAddress() public view returns(address strat) {
         strat = address(strategy);
     }
 
-    function testSend() public payable {}
+    function getOptionalExchangeAddress() public view returns(address optionalExchange){
+        optionalExchange = strategy.getOptionExchangeAddress();
+    }
 
+    function getOptionalRegistryAddress() public view returns(address optionalRegistry){
+        optionalRegistry = strategy.getOptionRegistryAddress();
+    }
+
+    function getStrategy() public view returns(Strategy strat){
+        strat = strategy;
+    }
 
 }

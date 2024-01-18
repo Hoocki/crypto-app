@@ -40,6 +40,14 @@ contract Strategy {
         return address(this).balance;
     }
 
+    function getOptionExchangeAddress() external view returns (address) {
+        return address(optionExchange);
+    }
+
+    function getOptionRegistryAddress() external view returns (address) {
+        return address(optionRegistry);
+    }
+
     function sendToPool() external fromPool {
         address payable _to = payable(pool_address); 
         _to.transfer(address(this).balance);
@@ -88,7 +96,7 @@ contract Strategy {
 
         CombinedActions.OperationProcedures[] memory __procedures = new CombinedActions.OperationProcedures[](2);
 
-        CombinedActions.OperationProcedures memory _procedure1; 
+        CombinedActions.OperationProcedures memory _procedure1;
 
         CombinedActions.ActionArgs memory _action1 = createRyskAction(0, address(0), 0, 1705651200, 2900000000000000000000, false, 0);
 
@@ -109,7 +117,7 @@ contract Strategy {
     }
 
     function callRedeem() external fromPool{
-        optionRegistry.redeem(address(optionRegistry), address(0));
+        optionRegistry.redeem(address(this), address(0));
     }
 
 }

@@ -6,6 +6,8 @@ import "../node_modules/hardhat/console.sol";
 
 contract OptionExchange {
 
+    receive() external payable {}
+
     modifier nonReentrant(){
         _;
     } 

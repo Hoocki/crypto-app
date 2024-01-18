@@ -44,3 +44,5 @@ D
 backend/test/Lock.js,6\9\69577b9945ced603b1a5de472f8df00ed3686be9
 A
 backend/README.md,6\6\6610930c2092e0f10b89932e6e99b7645897ce85
+E
+backend/test/Vault.js,b\a\baca52be13aae68d70cd756048157f4858b04eeb
