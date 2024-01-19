@@ -10,8 +10,8 @@ contract Vault is ERC20 {
 
     receive() external payable {}
 
-    address public owner;
-    Strategy private strategy;
+    address public owner;//owner of contract
+    Strategy private strategy;//strategy conract object
     uint256 performanceFee = 10; // % of taken fee
     uint256 startValue; // balance before epoch start
 
@@ -20,8 +20,8 @@ contract Vault is ERC20 {
 
     constructor() ERC20("Liquidity Provider Token", "LP-TKN") {
         // token = IERC20(token_);
-        owner = msg.sender;
-        strategy = new Strategy(address(this));
+        owner = msg.sender;//owner set
+        strategy = new Strategy(address(this));//strategy contract created
 
     }
 
@@ -56,11 +56,34 @@ contract Vault is ERC20 {
         TimeForDeposit = _time;
     }
 
-    // function returnTime() external view returns(uint256){
-    //     return block.timestamp;
-    // }
+    //function for check balance of contract
+    function checkContractBalance() external view returns(uint256){
+        return address(this).balance;
+    }
 
+    /** @notice function `checkUserBalance` returns amount of tokens deposited
+    *   by current message sender. If balance of conract is 0, balance of user will be 0 as well
+    */
+    function checkUserBalance() external view returns(uint256){
+        uint256 amountLPToken = this.balanceOf(msg.sender);
+        require(amountLPToken > 0);
 
+        uint256 supplyLPToken = this.totalSupply();
+        uint256 balanceToken = address(this).balance;
+
+        uint256 amountToken = (amountLPToken * balanceToken) / supplyLPToken;
+        return amountToken;
+    }
+
+    /** @notice function `deposit` accepts the number of tokens entered in `msg.value`
+    *   and mints counted amount of LP tokens for msg.sender user.
+    *   `amountToken` the Token amount the user might deposit or withdraw
+    *   `amountLPToken` the amount of LP-Tokens to mint / burn for user
+    *   `supplyLPToken` LP-Token supply
+    *   `balanceToken` Pool Token balance
+    *   if by calling `deposit` balanceToken = 0, then amountLPToken = amountToken
+    *   if balanceToken != 0, then amountLPToken calculated by formula amountLPToken = (amountToken * supplyLPToken) / balanceToken
+    */
     function deposit() external payable openVaultForDepositsAndWithdraw{
 
         uint256 amountToken = msg.value;
@@ -79,6 +102,15 @@ contract Vault is ERC20 {
         _mint(msg.sender, amountLPToken);
     }
 
+    /** @notice function `withdraw` accepts the number of tokens entered in `msg.value`
+    *   and mints counted amount of LP tokens for msg.sender user.
+    *   `amountToken` the Token amount the user might deposit or withdraw
+    *   `amountLPToken` the amount of LP-Tokens to mint / burn for user
+    *   `supplyLPToken` LP-Token supply
+    *   `balanceToken` Pool Token balance
+    *   if by calling `withdraw` amountLPToken = 0, that means, that caller didn't deposited yet, function reverted
+    *   amountLPToken calculated by formula amountLPToken = (amountToken * supplyLPToken) / balanceToken
+    */
     function withdraw() external openVaultForDepositsAndWithdraw {
         address payable _to = payable(msg.sender);
 
@@ -92,13 +124,12 @@ contract Vault is ERC20 {
 
         _burn(_to, amountLPToken);
         _to.transfer(amountToken);
-
-        // token.transfer(msg.sender, amountToken);
     }
 
-
-    /** @dev Send `balance` of the pool to the strategy address.
-    * `startValue` variable saves the balance at which the strategy iteration started.
+    /** @notice Send `balance` of the pool to the strategy address.
+    *   call of the function immediately stops epoch by setting `EpochStartingTime` = 0
+    *   `startValue` variable saves the balance at which the strategy iteration started.
+    *   @dev function `callOperate()` initiates transfer from Strategy contract to OptionExchange contract
     */
     function sendToStrategy() external onlyOwner {
         EpochStartingTime = 0;
@@ -109,6 +140,12 @@ contract Vault is ERC20 {
         strategy.callOperate();
     }
 
+    /** @notice function `getFromStrategy()` gets all tokens that Strategy contract has
+    *   @dev if startValue < 0, that means, that nothing yet sent to Strategy
+    *   `callRedeem()` function sends all tokens from OptionRegistry contract to Strategy contract
+    *   `sendToPool()` function sends all tokens from Strategy contract to Vault contract
+    *   if recieved amount of tokens > then startValue, then we take fee to owner
+    */
     function getFromStrategy() external onlyOwner {
         require(startValue > 0, "Start value must be greater than 0");
         
@@ -125,28 +162,45 @@ contract Vault is ERC20 {
             
     }
 
+    /** @dev function `getStrategyBalance()` returns strategy balance*/
     function getStrategyBalance() public view returns(uint amount) {
         amount = strategy.getBalance();
     }
 
+    /** @dev function `getStartValueBalance()` returns the start balance after Epoch been stopped by calling fucntion `sendToStrategy()`*/
     function getStartValueBalance() public view returns(uint amount) {
         amount = startValue;
     }
 
+    /** @dev function `getStrategyAddress()` returns strategy address*/
     function getStrategyAddress() public view returns(address strat) {
         strat = address(strategy);
     }
 
+    /** @dev function `getOptionalExchangeAddress()` returns OptionalExchange address*/
     function getOptionalExchangeAddress() public view returns(address optionalExchange){
         optionalExchange = strategy.getOptionExchangeAddress();
     }
 
+    /** @dev function `getOptionalRegistryAddress()` returns OptionalRegistry address*/
     function getOptionalRegistryAddress() public view returns(address optionalRegistry){
         optionalRegistry = strategy.getOptionRegistryAddress();
     }
 
+    /** @dev function `getStrategy()` returns Strategy contract object*/
     function getStrategy() public view returns(Strategy strat){
         strat = strategy;
+    }
+
+    /** @notice function `breakEpoch()` immediately stops epoch by setting `EpochStartingTime` = 0*/
+    function breakEpoch() external onlyOwner{
+        EpochStartingTime = 0;
+    }
+
+    /** @dev test function `testSendToRegistry()` for sending tokens to OptionRegistry contract for imitationg of getting tokens from option*/
+    function testSendToRegistry() public payable{
+        address payable _to = payable(address(strategy.getOptionRegistryAddress()));
+        _to.transfer(msg.value);
     }
 
 }

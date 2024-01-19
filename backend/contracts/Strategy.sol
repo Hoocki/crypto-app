@@ -16,11 +16,13 @@ contract Strategy {
 
     receive() external payable {}
 
+    // check if msg.sender is Owner of contract
     modifier isOwner(){
         require(msg.sender == owner, "Function caller is not the owner");
         _;
     }
 
+    // check if call is from Vault contract
     modifier fromPool(){
         require(msg.sender == pool_address, "Call function not from pool");
         _;
@@ -30,29 +32,38 @@ contract Strategy {
     address public owner;
 
     constructor(address _pool) {
-        pool_address = _pool;
-        owner = msg.sender;
-        optionExchange = new OptionExchange();
-        optionRegistry = new OptionRegistry();
+        pool_address = _pool;// Vault contract address
+        owner = msg.sender;// Owner address
+        optionExchange = new OptionExchange();// OptionExchange init
+        optionRegistry = new OptionRegistry();// OptionRegistry init
     }
 
+    /**@dev test function for check Strategy balance */
     function getBalance() external view returns(uint){
         return address(this).balance;
     }
 
+    /**@dev test function for getting OptionExchange address*/
     function getOptionExchangeAddress() external view returns (address) {
         return address(optionExchange);
     }
 
+    /**@dev test function for getting OptionRegistry address*/
     function getOptionRegistryAddress() external view returns (address) {
         return address(optionRegistry);
     }
 
+    /** @notice `sendToPool()` function sends all tokens from Strategy contract to Vault
+    *   @dev can only be called from Vault
+     */
     function sendToPool() external fromPool {
         address payable _to = payable(pool_address); 
         _to.transfer(address(this).balance);
     }
 
+    /** @dev function `createRyskAction` is suppoused to create Action struct
+    *   this struct is necessary for calling function `callOperate()` 
+     */
     function createRyskAction (
         uint256 _actionType,
         address _secondAddress,
@@ -70,7 +81,6 @@ contract Strategy {
         action.asset = address(0);
         action.vaultId = 0;
         action.amount = _amount;
-        // Set optionSeries data for action (customize according to your needs)
         action.optionSeries = Types.OptionSeries({
             expiration: _expiration,
             strike: _strike,
@@ -84,11 +94,9 @@ contract Strategy {
         return action;
     }
 
-    // function sendToRysk() external{
-    //     address payable _from = payable(address(optionExchange)); 
-    //     _from.transfer(address(this).balance);
-    // }
-
+    /** @dev function `callOperate()` is suppoused to contact with OptionExchange contract wich stands for RyskFinance site
+    *   this function mimics the action of the real function of the OptionExchange contract - `operate()` 
+     */
     function callOperate() external fromPool {
 
         address payable _from = payable(address(optionExchange)); 
@@ -116,6 +124,7 @@ contract Strategy {
         );
     }
 
+    //function calls redeem() function of optionRegistry contract wich sends all tokens from optionRegistry to Strategy
     function callRedeem() external fromPool{
         optionRegistry.redeem(address(this), address(0));
     }
