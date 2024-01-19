@@ -8,6 +8,7 @@ import Web3 from 'web3';
 
 import contractJSON from '../Vault.json';
 
+import setttingsJSON from '../settings.json'
 
 const Contracts = () => {
     const [showMenu, setShowMenu] = useState(false);
@@ -24,14 +25,14 @@ const Contracts = () => {
     const [userAddress, setUserAddress] = useState(null);
     const [contract, setContract] = useState(null);
 
-    const isOwner = userAddress && userAddress === '0xdb21a0fb89450aec2b2827529e57aeb106a2b436';
+    const isOwner = userAddress && userAddress === setttingsJSON.ownerAddress;
 
     const [contractTable, setTable] = useState(
         {
             name: "ETH-LEBRON", market: 'The Bronze Bay Finance',
             contractBalance: '-',
             userBalance: '-',
-            address: '0xF5645e88912225B2Ca7b02321eefce74Ff174ED1',
+            address: setttingsJSON.contractAddress,
             abi: contractJSON.abi,
             startTime: 'x',
             endTime: 'x',
