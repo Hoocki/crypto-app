@@ -102,7 +102,6 @@ const Contracts = () => {
     const getEpochStatus = async () => {
         try {
             const newStatus = await contract.methods.epochStatus().call({ from: userAddress, gas: 300000 });
-            console.log(newStatus);
             return newStatus;
         } catch (error) {
             console.error('Epoch status check error:', error.message);
@@ -114,7 +113,6 @@ const Contracts = () => {
         try {
             console.log('Check user balance attempt');
             const newUserBalance = await contract.methods.checkUserBalance().call({ from: userAddress, gas: 300000 });
-            console.log(newUserBalance);
             return newUserBalance.toString();
         } catch (error) {
             console.error('User balance check error:', error.message);
@@ -126,7 +124,6 @@ const Contracts = () => {
         try {
             console.log('Check contract balance attempt');
             const newContractBalance = await contract.methods.checkContractBalance().call();
-            console.log(newContractBalance);
             return web3.utils.fromWei(newContractBalance, 'wei').toString();
         } catch (error) {
             console.error('Contract balance check error:', error.message);
@@ -202,18 +199,19 @@ const Contracts = () => {
         }
     }
 
-    // const getEpochTimeDifference = () => {
-    //     const currentTime = new Date().getTime() / 1000;
-    //     const closingTimeInSeconds = ;
-    //     console.log('NIGGERS', closingTimeInSeconds);
-    //     // const dateFormatted = `${date.getFullYear()}${(date.getMonth() + 1).toString().padStart(2, '0')}${date.getDate().toString().padStart(2, '0')}`;
-    //     const timeDifference = closingTimeInSeconds - currentTime;
-    //     return timeDifference;
-    // };
+    const getEpochTimeDifference = () => {
+        const currentTime = new Date().getTime();
+        const closingTimeInSeconds = parseInt(contractTable.endTime) * 1000;
+        const dif = (closingTimeInSeconds - currentTime);
+
+        const hours = Math.floor(dif / (1000 * 60 * 60));
+        const minutes = Math.floor((dif % (1000 * 60 * 60)) / (1000 * 60))
+        return `${hours} hours ${minutes} minutes`;
+    };
 
     const statusParse = (status) => {
         if (status === true) {
-            return 'open';
+            return 'open for ' + getEpochTimeDifference();
         }
         if (status === false) {
             return 'closed';
@@ -236,8 +234,8 @@ const Contracts = () => {
         )
     } else {
         return (
-            <div>
-                <Container className="mt-4">
+            <div style={{ maxWidth: '1440px', marginLeft: '100px', marginTop: '50px'}}>
+                <Container>
                     <Row>
                         <Col xs={7}> 
                             <Button onClick={handleConnect} variant="light" className="col custom-button mb-2">
@@ -245,27 +243,33 @@ const Contracts = () => {
                             </Button>
 
                             {isConnected ?
-                                <p>Your account address: {accounts[0]}</p>
+                                <p>You are logged in with account {accounts[0]}</p>
                                 :
                                 <p>No connection has been established</p>
+                            }
+
+                            {isOwner ?
+                                <p>Status: owner</p>
+                                :
+                                <p>Status: user</p>
                             }
                         </Col>
                     </Row>
                     
 
                     {contractTable && isConnected &&
-                        <div className="mt-2 custom-table">
+                        <div className="mt-4 custom-table">
                             <Table borderless>
                                 <thead>
                                     <tr>
-                                        <th className="text-center">Strategy</th>
-                                        <th className="text-center">Status</th>
-                                        <th className="text-center">Market</th>
-                                        <th className="text-center">Balance</th>
-                                        <th className="text-center">Your Balance</th>
-                                        <th className="text-center">Action</th>
+                                        <th className="text-center align-middle">Strategy</th>
+                                        <th className="text-center align-middle">Status</th>
+                                        <th className="text-center align-middle">Market</th>
+                                        <th className="text-center align-middle">Pool Balance</th>
+                                        <th className="text-center align-middle">Your Balance</th>
+                                        <th className="text-center align-middle">Action</th>
                                         {isOwner &&
-                                            <th className="text-center">Owner action</th>
+                                            <th className="text-center align-middle">Owner action</th>
                                         }
                                     </tr>
                                 </thead>
@@ -291,10 +295,10 @@ const Contracts = () => {
                                             {isOwner &&
                                                 <td className="text-center" style={{ width: '360px' }}>
                                                         <Button onClick={() => handleRedeem()} variant="light" className="custom-button mb-2" >
-                                                            Redeem
+                                                            Redeem from stategy
                                                         </Button>
                                                         <Button onClick={() => handleStart()} variant="light" className="custom-button mb-2" >
-                                                            Start
+                                                            Send to strategy
                                                         </Button>
                                                         <Button onClick={startEpoch} variant="light" className="custom-button mb-2">
                                                             Start epoch
