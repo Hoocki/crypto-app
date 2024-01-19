@@ -3,6 +3,8 @@ pragma solidity >=0.7.0 <0.9.0;
 
 import {ERC20} from "../node_modules/@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {IERC20} from "../node_modules/@openzeppelin/contracts/token/ERC20/IERC20.sol";
+// import {ERC20} from "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/v4.9.5/contracts/token/ERC20/ERC20.sol";
+// import {IERC20} from "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/v4.9.5/contracts/token/ERC20/IERC20.sol";
 
 import "./Strategy.sol";
 
@@ -38,7 +40,7 @@ contract Vault is ERC20 {
             "Epoch not started!"
         );
         _;
-    } 
+    }
 
     /**@notice owner starts epoch by calling this function
     * `EpochStartingTime` variable saves the timestamp at wich the epoch started
@@ -47,6 +49,13 @@ contract Vault is ERC20 {
     */
     function startEpoch() external onlyOwner {
         EpochStartingTime = block.timestamp;
+    }
+
+    /**@notice test function returns time when epoch started, will end, and epoch status*/
+    function epochStatus() external view returns(uint256 _EpochStartingTime, uint256 _EpochEndingTime, bool _epochIsGoing){
+        _EpochStartingTime = EpochStartingTime;
+        _EpochEndingTime = EpochStartingTime + TimeForDeposit;
+        _epochIsGoing = (((EpochStartingTime + TimeForDeposit) >= block.timestamp) && (EpochStartingTime <= block.timestamp));
     }
 
     /** @notice function `setTimeForDeposit` if you want to correct how long epoch lasts
@@ -66,7 +75,7 @@ contract Vault is ERC20 {
     */
     function checkUserBalance() external view returns(uint256){
         uint256 amountLPToken = this.balanceOf(msg.sender);
-        require(amountLPToken > 0);
+        require(amountLPToken > 0, "You have not deposited yet!");
 
         uint256 supplyLPToken = this.totalSupply();
         uint256 balanceToken = address(this).balance;
@@ -115,7 +124,7 @@ contract Vault is ERC20 {
         address payable _to = payable(msg.sender);
 
         uint256 amountLPToken = this.balanceOf(msg.sender);
-        require(amountLPToken > 0);
+        require(amountLPToken > 0, "AmountLP token must be greater than 0");
 
         uint256 supplyLPToken = this.totalSupply();
         uint256 balanceToken = address(this).balance;
