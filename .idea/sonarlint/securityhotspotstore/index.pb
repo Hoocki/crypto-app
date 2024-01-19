@@ -16,3 +16,33 @@ Q.idea/sonarlint/securityhotspotstore/8/e/8ec9a00bfd09b3190ac6b22251dbb1aa95a057
 -.idea/sonarlint/securityhotspotstore/index.pb,8\8\88a9255124c95bdc913197c120a8d560edc59c8e
 Å
 Q.idea/sonarlint/securityhotspotstore/a/5/a5cc2925ca8258af241be7e5b0381edf30266302,3\0\30205a209c6ce77c4cfc19a09e6f57c588b7fb88
+D
+backend/package.json,2\d\2d67691333633e849af94af966942f0c1b3151c6
+I
+backend/package-lock.json,1\5\151d7c3d3a228f46120563e689d0c68b7f56fe6f
+B
+backend/.gitignore,7\e\7e16691a9fc60084a157565ec422c8094d3df67c
+I
+backend/scripts/deploy.js,3\7\376c9815abc635d2b7df2d7e13bb9ce70a5a61c9
+K
+backend/contracts/Vault.sol,b\8\b83ca10aa733a44f403370b83aa3423fbc5c351e
+P
+ backend/mocks/OptionExchange.sol,3\a\3ad93bdccade189385a92be887d82e94d78fbb77
+E
+backend/test/Token.js,1\d\1d8d18b9a90dc96c0ba5ef26ab3815f5462e7150
+N
+backend/contracts/Strategy.sol,c\9\c975a3472a61a85e712d73391838cb5bd22009cc
+]
+-backend/mocks/interfaces/ICombinedActions.sol,1\4\14c97c47da7b6e60a523d3db0341fd14c07a392a
+Q
+!backend/mocks/libraries/Types.sol,2\8\28ff3be3baff65b9929b24207f0918dfe3020cca
+P
+ backend/mocks/OptionRegistry.sol,d\1\d17d6062dcbca3a92abea8ccd182b76631194973
+I
+backend/hardhat.config.js,a\6\a6b6c338baf850baae35437a362c71da2c267e6f
+D
+backend/test/Lock.js,6\9\69577b9945ced603b1a5de472f8df00ed3686be9
+A
+backend/README.md,6\6\6610930c2092e0f10b89932e6e99b7645897ce85
+E
+backend/test/Vault.js,b\a\baca52be13aae68d70cd756048157f4858b04eeb
