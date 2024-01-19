@@ -9,7 +9,6 @@ To get a local copy up and running follow these simple steps
 `git clone https://github.com/Hoocki/crypto-app`
 
 ### Setup backend
-After completion of `Setup client`.
 1. Inside project directory 
 `cd backend`
 2. Install modules
@@ -37,4 +36,4 @@ Inside project directory
 npm install
 npm start`
 
-###Enjoy!
+### Enjoy!
