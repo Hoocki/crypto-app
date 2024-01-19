@@ -27,8 +27,8 @@ To get a local copy up and running follow these simple steps
 9. Remember  **Token address** from terminal
 
 ### Prepare for client setup 
-You need to put Vault.json file from ..\crypto-app\backend\artifacts\contracts\Vault.sol\Vault.json to ..\crypto-app\frontend\src
-Specify Vault contract (**Token address**) and its **owner addresses** in ..\crypto-app\frontend\src\settings.json
+1. You need to put Vault.json file from `..\crypto-app\backend\artifacts\contracts\Vault.sol\Vault.json` to `..\crypto-app\frontend\src`
+2. Specify Vault contract (**Token address**) and its **owner addresses** in `..\crypto-app\frontend\src\settings.json`
 
 ### Setup client
 Inside project directory
