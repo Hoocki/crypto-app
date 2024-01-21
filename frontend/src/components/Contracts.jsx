@@ -27,23 +27,34 @@ const Contracts = () => {
 
     const isOwner = userAddress && userAddress === setttingsJSON.ownerAddress;
 
-    const [contractTable, setTable] = useState(
-        {
-            name: "ETH-LEBRON", market: 'The Bronze Bay Finance',
-            contractBalance: '-',
-            userBalance: '-',
-            address: setttingsJSON.contractAddress,
-            abi: contractJSON.abi,
-            startTime: 'x',
-            endTime: 'x',
-            status: false
-        }
-    );
+
+    const [contractName, setContractName] = useState("ETH-LEBRON")
+    const [market, setMarket] = useState('The Bronze Bay Finance')
+    const [contractBalance, setContractBalance] = useState('-')
+    const [userBalance, setUserBalance] = useState('-')
+    const [contractAddress, setContractAddress] = useState(setttingsJSON.contractAddress)
+    const [contractABI, setContractABI] = useState(contractJSON.abi)
+    const [startTime, setStartTime] = useState('x')
+    const [endTime, setEndTime] = useState('x')
+    const [status, setStatus] = useState(false)
+
+    // const [contractTable, setTable] = useState(
+    //     {
+    //         contractName: "ETH-LEBRON", market: 'The Bronze Bay Finance',
+    //         contractBalance: '-',
+    //         userBalance: '-',
+    //         address: setttingsJSON.contractAddress,
+    //         abi: contractJSON.abi,
+    //         startTime: 'x',
+    //         endTime: 'x',
+    //         status: false
+    //     }
+    // );
 
     useEffect(() => {
-        if (contract && web3)
+        if (userAddress && web3 && contract)
             checkBalance();
-    }, [contract, web3]);
+    }, [userAddress]);
 
     const handleConnect = async () => {
         try {
@@ -56,11 +67,11 @@ const Contracts = () => {
             setIsConnected(accounts.length > 0);
             console.log('Connection established');
 
-            const userAddress = accounts[0];
-            const contractInstance = new web3Instance.eth.Contract(contractTable.abi, contractTable.address);
+            const newUserAddress = accounts[0];
+            const contractInstance = new web3Instance.eth.Contract(contractABI, contractAddress);
 
             setWeb3(web3Instance);
-            setUserAddress(userAddress);
+            setUserAddress(newUserAddress);
             setContract(contractInstance);
         } catch (error) {
             console.error('Connection error:', error);
@@ -71,6 +82,7 @@ const Contracts = () => {
     const startEpoch = async () => {
         try {
             await contract.methods.startEpoch().send({ from: userAddress });
+            checkBalance();
         } catch (error) {
             console.error('Epoch start error:', error.message);
         }
@@ -79,6 +91,7 @@ const Contracts = () => {
     const breakEpoch = async () => {
         try {
             await contract.methods.breakEpoch().send({ from: userAddress });
+            checkBalance();
         } catch (error) {
             console.error('Epoch break error:', error.message);
         }
@@ -87,6 +100,7 @@ const Contracts = () => {
     const handleRedeem = async () => {
         try {
             await contract.methods.getFromStrategy().send({ from: userAddress });
+            checkBalance();
         } catch (error) {
             console.error('Redem error:', error.message);
         }
@@ -95,6 +109,7 @@ const Contracts = () => {
     const handleStart = async () => {
         try {
             await contract.methods.sendToStrategy().send({ from: userAddress });
+            checkBalance();
         } catch (error) {
             console.error('Redem error:', error.message);
         }
@@ -114,10 +129,13 @@ const Contracts = () => {
         try {
             console.log('Check user balance attempt');
             const newUserBalance = await contract.methods.checkUserBalance().call({ from: userAddress, gas: 300000 });
-            return newUserBalance.toString();
+            if (newUserBalance.toString() === "0") {
+                return ('-');
+            }
+            return web3.utils.fromWei(newUserBalance, 'ether').toString();
         } catch (error) {
             console.error('User balance check error:', error.message);
-            throw error;
+            return('-');
         }
     };
 
@@ -125,27 +143,27 @@ const Contracts = () => {
         try {
             console.log('Check contract balance attempt');
             const newContractBalance = await contract.methods.checkContractBalance().call();
-            return web3.utils.fromWei(newContractBalance, 'wei').toString();
+            if (newContractBalance.toString() === "0") {
+                return ('-');
+            }
+            return web3.utils.fromWei(newContractBalance, 'ether').toString();
         } catch (error) {
             console.error('Contract balance check error:', error.message);
-            throw error;
+            return ('-');
         }
     };
 
     const checkBalance = async () => {
         try {
             const newStatus = await getEpochStatus();
+            setStartTime(newStatus._EpochStartingTime);
+            setEndTime(newStatus._EpochEndingTime);
+            setStatus(newStatus._epochIsGoing);
+            
             const newUserBalance = await checkUserBalance();
+            setUserBalance(newUserBalance);
             const newContractBalance = await checkContractBalance();
-
-            setTable({
-                ...contractTable,
-                startTime: newStatus._EpochStartingTime,
-                endTime: newStatus._EpochEndingTime,
-                status: newStatus._epochIsGoing,
-                userBalance: newUserBalance,
-                contractBalance: newContractBalance
-            });
+            setContractBalance(newContractBalance);
         } catch (error) {
             console.error('Balance check error:', error.message);
         }
@@ -202,7 +220,7 @@ const Contracts = () => {
 
     const getEpochTimeDifference = () => {
         const currentTime = new Date().getTime();
-        const closingTimeInSeconds = parseInt(contractTable.endTime) * 1000;
+        const closingTimeInSeconds = parseInt(endTime) * 1000;
         const dif = (closingTimeInSeconds - currentTime);
 
         const hours = Math.floor(dif / (1000 * 60 * 60));
@@ -243,22 +261,23 @@ const Contracts = () => {
                                 Connect with MetaMask
                             </Button>
 
-                            {isConnected ?
-                                <p>You are logged in with account {accounts[0]}</p>
-                                :
+                            {isConnected ? (
+                                <div>
+                                    <p>You are logged in with account {accounts[0]}</p>
+                                    {isOwner ? (
+                                        <p>Status: owner</p>
+                                    ) : (
+                                        <p>Status: user</p>
+                                    )}
+                                </div>
+                            ) : (
                                 <p>No connection has been established</p>
-                            }
-
-                            {isOwner ?
-                                <p>Status: owner</p>
-                                :
-                                <p>Status: user</p>
-                            }
+                            )}
                         </Col>
                     </Row>
                     
 
-                    {contractTable && isConnected &&
+                    {isConnected &&
                         <div className="mt-4 custom-table">
                             <Table borderless>
                                 <thead>
@@ -275,48 +294,45 @@ const Contracts = () => {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {contractTable &&
-                                        <tr>
-                                            <td className="text-center">{contractTable.name}</td>
-                                            <td className="text-center">{statusParse(contractTable.status)}</td>
-                                            <td className="text-center">{contractTable.market}</td>
-                                            <td className="text-center">{contractTable.contractBalance}</td>
-                                            <td className="text-center">{contractTable.userBalance}</td>
-                                            <td className="text-center" style={{ width: '180px' }}>
-                                                <Button onClick={() => handleMenuShow()}
-                                                    variant="light" className="custom-button" >
-                                                    Deposit
-                                                </Button>
-                                                <Button onClick={() => handleWithdraw()}
-                                                    variant="light" className="custom-button" >
-                                                    Withdraw
-                                                </Button>
-                                            </td>
+                                    <tr>
+                                        <td className="text-center">{contractName}</td>
+                                        <td className="text-center">{statusParse(status)}</td>
+                                        <td className="text-center">{market}</td>
+                                        <td className="text-center">{contractBalance}</td>
+                                        <td className="text-center">{userBalance}</td>
+                                        <td className="text-center" style={{ width: '180px' }}>
+                                            <Button disabled={!status} onClick={() => handleMenuShow()}
+                                                        variant="light" className="custom-button" >
+                                                        Deposit
+                                                    </Button>
+                                                    <Button disabled={!status} onClick={() => handleWithdraw()}
+                                                        variant="light" className="custom-button" >
+                                                        Withdraw
+                                                    </Button>
+                                        </td>
 
-                                            {isOwner &&
-                                                <td className="text-center" style={{ width: '360px' }}>
-                                                        <Button onClick={() => handleRedeem()} variant="light" className="custom-button mb-2" >
-                                                            Redeem from stategy
-                                                        </Button>
-                                                        <Button onClick={() => handleStart()} variant="light" className="custom-button mb-2" >
-                                                            Send to strategy
-                                                        </Button>
-                                                        <Button onClick={startEpoch} variant="light" className="custom-button mb-2">
-                                                            Start epoch
-                                                        </Button>
-                                                        <Button onClick={breakEpoch} variant="light" className="custom-button mb-2">
-                                                            Break epoch
-                                                        </Button>
-                                                </td>
-                                            }
-                                        </tr>
-                                    }
+                                        {isOwner &&
+                                            <td className="text-center" style={{ width: '360px' }}>
+                                                    <Button onClick={() => handleRedeem()} variant="light" className="custom-button mb-2" >
+                                                        Redeem from stategy
+                                                    </Button>
+                                                    <Button onClick={() => handleStart()} variant="light" className="custom-button mb-2" >
+                                                        Send to strategy
+                                                    </Button>
+                                                    <Button onClick={startEpoch} variant="light" className="custom-button mb-2">
+                                                        Start epoch
+                                                    </Button>
+                                                    <Button onClick={breakEpoch} variant="light" className="custom-button mb-2">
+                                                        Break epoch
+                                                    </Button>
+                                            </td>
+                                        }
+                                    </tr>
                                 </tbody>
 
                             </Table>
                         </div>
                     }
-
                     
                     {showMenu &&
                         <Modal
